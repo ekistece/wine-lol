@@ -133,6 +133,7 @@ prepare() {
 
   # apply wine-staging patchset
   pushd wine-staging-$_pkgbasever/patches
+  # -W server-Desktop_Refcount -W ws2_32-TransmitFile is needed by fsync-staging-27a52d0.patch
   ./patchinstall.sh DESTDIR="$srcdir/$pkgname" --all -W server-Desktop_Refcount -W ws2_32-TransmitFile
   popd
 
