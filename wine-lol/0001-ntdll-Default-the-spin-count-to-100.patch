@@ -1,0 +1,26 @@
+From 94e7eed2beebe0b8826f12164bfcc9c5634d93a4 Mon Sep 17 00:00:00 2001
+From: Zebediah Figura <zfigura@codeweavers.com>
+Date: Wed, 18 Mar 2020 20:03:42 -0500
+Subject: [PATCH] ntdll: Default the spin count to 100.
+
+Signed-off-by: Zebediah Figura <zfigura@codeweavers.com>
+---
+ dlls/ntdll/fsync.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dlls/ntdll/fsync.c b/dlls/ntdll/fsync.c
+index 110c8221b06..ffb6b95239d 100644
+--- a/dlls/ntdll/fsync.c
++++ b/dlls/ntdll/fsync.c
+@@ -89,7 +89,7 @@ static inline int futex_wait( int *addr, int val, struct timespec *timeout )
+     return syscall( __NR_futex, addr, 0, val, timeout, 0, 0 );
+ }
+ 
+-static unsigned int spincount;
++static unsigned int spincount = 100;
+ 
+ int do_fsync(void)
+ {
+-- 
+2.28.0
+
