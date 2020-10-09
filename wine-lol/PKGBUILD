@@ -220,7 +220,7 @@ prepare() {
 
   # apply wine-staging patchset
   pushd wine-staging-$_pkgbasever/patches
-  ./patchinstall.sh DESTDIR="$srcdir/$pkgname" --all
+  ./patchinstall.sh DESTDIR="$srcdir/$pkgname" --all -W ntdll-ForceBottomUpAlloc
   popd
 
 
