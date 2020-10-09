@@ -1,0 +1,105 @@
+From e4e178d8d3b3dcc5a87b366c4a3c73ec72f8a2e4 Mon Sep 17 00:00:00 2001
+From: yuiiio <atbjyk@protonmail.com>
+Date: Wed, 23 Sep 2020 09:08:14 +0900
+Subject: [PATCH 2/3] set _NET_WM_BYPASS_COMPOSITOR at fullscreen-window when
+ WINE_FULLSCREEN_BYPASS_COMPOSITOR=1
+
+---
+ dlls/winex11.drv/settings.c    | 11 +++++++++++
+ dlls/winex11.drv/window.c      |  9 +++++++++
+ dlls/winex11.drv/x11drv.h      |  2 ++
+ dlls/winex11.drv/x11drv_main.c |  1 +
+ 4 files changed, 23 insertions(+)
+
+diff --git a/dlls/winex11.drv/settings.c b/dlls/winex11.drv/settings.c
+index b3efa96e08a..2887bc630cc 100644
+--- a/dlls/winex11.drv/settings.c
++++ b/dlls/winex11.drv/settings.c
+@@ -89,6 +89,17 @@ BOOL restore_display_mode(void)
+     return is_int;
+ }
+ 
++BOOL bypass_compositor(void)
++{
++    static int is_int = -1;
++    if(is_int < 0)
++    {
++        const char *e = getenv("WINE_FULLSCREEN_BYPASS_COMPOSITOR");
++        is_int = e && strcmp(e, "0");
++    }
++    return is_int;
++}
++
+ /***********************************************************************
+  * Default handlers if resolution switching is not enabled
+  *
+diff --git a/dlls/winex11.drv/window.c b/dlls/winex11.drv/window.c
+index 44ebf4f700e..bdd4582a234 100644
+--- a/dlls/winex11.drv/window.c
++++ b/dlls/winex11.drv/window.c
+@@ -978,6 +978,7 @@ void update_user_time( Time time )
+ void update_net_wm_states( struct x11drv_win_data *data )
+ {
+     DWORD i, style, ex_style, new_state = 0;
++    unsigned long net_wm_bypass_compositor = 0;
+ 
+     if (!data->managed) return;
+     if (data->whole_window == root_window) return;
+@@ -990,7 +991,10 @@ void update_net_wm_states( struct x11drv_win_data *data )
+         if ((style & WS_MAXIMIZE) && (style & WS_CAPTION) == WS_CAPTION)
+             new_state |= (1 << NET_WM_STATE_MAXIMIZED);
+         else if (!(style & WS_MINIMIZE))
++	{
++            net_wm_bypass_compositor = 1;
+             new_state |= (1 << NET_WM_STATE_FULLSCREEN);
++        }
+     }
+     else if (style & WS_MAXIMIZE)
+         new_state |= (1 << NET_WM_STATE_MAXIMIZED);
+@@ -1049,6 +1053,11 @@ void update_net_wm_states( struct x11drv_win_data *data )
+         }
+     }
+     data->net_wm_state = new_state;
++
++    if(bypass_compositor()){
++        XChangeProperty( data->display, data->whole_window, x11drv_atom(_NET_WM_BYPASS_COMPOSITOR), XA_CARDINAL,
++                         32, PropModeReplace, (unsigned char *)&net_wm_bypass_compositor, 1 );
++    }
+ }
+ 
+ /***********************************************************************
+diff --git a/dlls/winex11.drv/x11drv.h b/dlls/winex11.drv/x11drv.h
+index 560cf686bee..a4c98639177 100644
+--- a/dlls/winex11.drv/x11drv.h
++++ b/dlls/winex11.drv/x11drv.h
+@@ -446,6 +446,7 @@ enum x11drv_atoms
+     XATOM__NET_SYSTEM_TRAY_OPCODE,
+     XATOM__NET_SYSTEM_TRAY_S0,
+     XATOM__NET_SYSTEM_TRAY_VISUAL,
++    XATOM__NET_WM_BYPASS_COMPOSITOR,
+     XATOM__NET_WM_ICON,
+     XATOM__NET_WM_MOVERESIZE,
+     XATOM__NET_WM_NAME,
+@@ -612,6 +613,7 @@ extern BOOL update_clipboard( HWND hwnd ) DECLSPEC_HIDDEN;
+ 
+ extern BOOL restore_display_mode(void) DECLSPEC_HIDDEN;
+ extern void get_default_mode(int width, int height) DECLSPEC_HIDDEN;
++extern BOOL bypass_compositor(void) DECLSPEC_HIDDEN;
+ 
+ static inline void mirror_rect( const RECT *window_rect, RECT *rect )
+ {
+diff --git a/dlls/winex11.drv/x11drv_main.c b/dlls/winex11.drv/x11drv_main.c
+index 5f07f4eec50..07f73579ccd 100644
+--- a/dlls/winex11.drv/x11drv_main.c
++++ b/dlls/winex11.drv/x11drv_main.c
+@@ -159,6 +159,7 @@ static const char * const atom_names[NB_XATOMS - FIRST_XATOM] =
+     "_NET_SYSTEM_TRAY_OPCODE",
+     "_NET_SYSTEM_TRAY_S0",
+     "_NET_SYSTEM_TRAY_VISUAL",
++    "_NET_WM_BYPASS_COMPOSITOR",
+     "_NET_WM_ICON",
+     "_NET_WM_MOVERESIZE",
+     "_NET_WM_NAME",
+-- 
+2.28.0
+
