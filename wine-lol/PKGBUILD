@@ -73,6 +73,7 @@ source=(https://dl.winehq.org/wine/source/5.x/wine-$_pkgbasever.tar.xz
         # bypass compositor
         0002-set-_NET_WM_BYPASS_COMPOSITOR-at-fullscreen-window-w.patch
         0003-xfwm4-does-not-bypass-compositor.patch
+        0001-Revert-winex11.drv-Update-_NET_WM_STATE-before-resiz.patch
 )
 
 sha512sums=('70565fbea61b78580ca86443fcb4c10c7814c1dffcfa49ee38746fef21a52a00f2e040d9d2515892fed4021e7868720cc22b650d18872656838e4610d4d4e823'
@@ -103,7 +104,8 @@ sha512sums=('70565fbea61b78580ca86443fcb4c10c7814c1dffcfa49ee38746fef21a52a00f2e
             '3a5ab544ef5776e5d2eda87478f363f3dd235a0bea44abc84e89dbf6fed5dedd8614cdd7a9565138d17438e0002dd0a5233625425eb855b8719ed8aec7bd4b06'
             'c8db991f51b0616e9854b293feaa62db2ffcad6ad2d9dc5736925aaaa12d7cefcdc426d49ac51ee9fcbdd31961f2be7182a917733ae4769d2477c118a37c5af7'
             '9c976729e675ac35ac9b1ac0af3f0a95a91bd8b99b9353c4a8eef593eb1ca419f843f3175a787b0297500d618e7d2c5c47b34b8cbef5612354e15c35803663b9'
-            '884632be9bd9a986031550df0ac886b991f980bc3e7d667abba7ea10fa732bdf266e84aa94463a6cd38277e7cb47a0479b8b3e892e899a18bc07efa532f02bd9')
+            '884632be9bd9a986031550df0ac886b991f980bc3e7d667abba7ea10fa732bdf266e84aa94463a6cd38277e7cb47a0479b8b3e892e899a18bc07efa532f02bd9'
+            'ff6ea107598bd681bb5534d977e2f40fe8104bcf53148284fdd2be14f67db1dfe6d8176ff8200fc982ab3902c28e4186876c4d1870fd7362d98e8b3b6d8efe31')
 
 pkgdesc="A compatibility layer for running Windows programs - Staging branch with League Of Legends fixes"
 url="http://www.wine-staging.com"
@@ -257,6 +259,10 @@ prepare() {
   patch -p1 -i "$srcdir/0003-xfwm4-does-not-bypass-compositor.patch"
   popd
 
+  # revret commit that break _net_active in league-client since wine-5.8
+  pushd "$srcdir/$pkgname"
+  patch -p1 -i "$srcdir/0001-Revert-winex11.drv-Update-_NET_WM_STATE-before-resiz.patch"
+  popd
 
   # Fix opencl header path
   sed 's|OpenCL/opencl.h|CL/opencl.h|g' -i $pkgname/configure*
