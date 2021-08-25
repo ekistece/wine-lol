@@ -1,4 +1,8 @@
-Wine-LoL
+Wine-LoL (Yuiiio's fork updated)
+========
+
+DISCLAIMER! This is not the M-Reimer wine-lol package, this is a repo based on yuiiio's wine-lol fork with fsync and suprisingly works with the latest LoL version. I just fixed the build scripts and packaged the deb files. Have fun playing League!
+
 ========
 
 This repository contains build scripts to build wine-lol including the required wine-lol–glibc for Arch/Manjaro (with sync to AUR) and Debian based distributions (Ubuntu, Mint, SteamOS, ...).
